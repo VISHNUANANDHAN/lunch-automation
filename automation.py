@@ -3,26 +3,75 @@ import pandas as pd
 import time
 import random
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
 
 FORM_URL = "https://forms.office.com/pages/responsepage.aspx?id=reFRbkvFOUu1mA_-muaP7_Bw656ZDoVIuISibW-uAYBUNkRINllQUEw2M09DUjI4STdMQ0FVTUs1Vy4u&route=shorturl"
 
-# READ PEOPLE DATA
+# =========================
+# EMAIL CONFIGURATION
+# =========================
+
+SENDER_EMAIL = "automationlunch@gmail.com"
+
+APP_PASSWORD = "yrgggmmdebxwtbcc"
+
+RECEIVER_EMAILS = [
+    "vijayaravindan1208@gmail.com",
+    "aravindan.v@lk-ea.com"
+]
+
+# =========================
+# SEND EMAIL FUNCTION
+# =========================
+
+def send_email(subject, body):
+
+    msg = MIMEText(body)
+
+    msg["Subject"] = subject
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = ", ".join(RECEIVER_EMAILS)
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+
+        server.login(SENDER_EMAIL, APP_PASSWORD)
+
+        server.sendmail(
+            SENDER_EMAIL,
+            RECEIVER_EMAILS,
+            msg.as_string()
+        )
+
+# =========================
+# READ CSV DATA
+# =========================
+
 people = pd.read_csv("people.csv")
 
+# =========================
 # RANDOM INITIAL DELAY
-# 5 minutes to 90 minutes
+# =========================
+
 initial_delay = random.randint(300, 2700)
 
 print(f"\nInitial random delay: {initial_delay} seconds...\n")
 
 time.sleep(initial_delay)
 
+# =========================
+# PLAYWRIGHT AUTOMATION
+# =========================
+
 with sync_playwright() as p:
 
-    # HEADLESS TRUE FOR CLOUD
     browser = p.chromium.launch(headless=True)
 
     page = browser.new_page()
+
+    success_count = 0
+
+    failed_people = []
 
     for index, person in people.iterrows():
 
@@ -57,6 +106,7 @@ with sync_playwright() as p:
 
             # SELECT DINING OPTION
             radios = page.locator("input[type='radio']")
+
             radios.last.click()
 
             page.wait_for_timeout(1000)
@@ -68,7 +118,8 @@ with sync_playwright() as p:
 
             print(f"[{success_time}] Submitted successfully: {name}")
 
-            # WAIT AFTER SUBMIT
+            success_count += 1
+
             page.wait_for_timeout(3000)
 
             # RANDOM DELAY BETWEEN PEOPLE
@@ -84,6 +135,28 @@ with sync_playwright() as p:
 
             print(f"[{error_time}] Error for {name}: {e}")
 
+            failed_people.append(name)
+
     browser.close()
+
+# =========================
+# FINAL EMAIL NOTIFICATION
+# =========================
+
+if len(failed_people) == 0:
+
+    send_email(
+        "Lunch Automation Success",
+        f"All {success_count} lunch forms submitted successfully."
+    )
+
+else:
+
+    failed_text = "\n".join(failed_people)
+
+    send_email(
+        "Lunch Automation Partial Failure",
+        f"Successful submissions: {success_count}\n\nFailed people:\n{failed_text}"
+    )
 
 print("\nAll submissions completed.\n")
