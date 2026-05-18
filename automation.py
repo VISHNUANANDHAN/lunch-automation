@@ -11,7 +11,7 @@ people = pd.read_csv("people.csv")
 
 # RANDOM INITIAL DELAY
 # 5 minutes to 90 minutes
-initial_delay = random.randint(300, 2700)
+initial_delay = random.randint(5, 10)
 
 print(f"\nInitial random delay: {initial_delay} seconds...\n")
 
@@ -72,7 +72,7 @@ with sync_playwright() as p:
             page.wait_for_timeout(3000)
 
             # RANDOM DELAY BETWEEN PEOPLE
-            delay = random.randint(20, 60)
+            delay = random.randint(3, 5)
 
             print(f"Waiting {delay} seconds before next submission...\n")
 
