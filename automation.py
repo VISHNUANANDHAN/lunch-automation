@@ -14,7 +14,7 @@ FORM_URL = "https://forms.office.com/pages/responsepage.aspx?id=reFRbkvFOUu1mA_-
 
 SENDER_EMAIL = "automationlunch@gmail.com"
 
-APP_PASSWORD = "yrgggmmdebxwtbcc"
+APP_PASSWORD = "ggapfeaecwumiamg"
 
 RECEIVER_EMAILS = [
     "vijayaravindan1208@gmail.com",
@@ -146,8 +146,8 @@ with sync_playwright() as p:
 if len(failed_people) == 0:
 
     send_email(
-        "Lunch Automation Success",
-        f"All {success_count} lunch forms submitted successfully."
+        "Machi Lunch Book Panten 😁👍",
+        f"Nee sonna andha {success_count} people kum sethi panniten! "
     )
 
 else:
@@ -155,8 +155,8 @@ else:
     failed_text = "\n".join(failed_people)
 
     send_email(
-        "Lunch Automation Partial Failure",
-        f"Successful submissions: {success_count}\n\nFailed people:\n{failed_text}"
-    )
+    "Lunch Booking la prechana !!",
+    f"Indha people-ku booking fail aagiruchu da:\n\n{failed_text}\n\nNee ivangaluku manual ah submit panniru."
+)
 
 print("\nAll submissions completed.\n")
