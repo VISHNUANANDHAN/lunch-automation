@@ -67,13 +67,13 @@ with sync_playwright() as p:
 
     browser = p.chromium.launch(headless=True)
 
-    page = browser.new_page()
-
     success_count = 0
 
     failed_people = []
 
     for index, person in people.iterrows():
+
+        page = browser.new_page()
 
         try:
 
@@ -114,13 +114,17 @@ with sync_playwright() as p:
             # CLICK SUBMIT
             page.get_by_role("button", name="Submit").click()
 
+            # WAIT AFTER SUBMIT
+            page.wait_for_timeout(5000)
+
             success_time = datetime.now().strftime("%H:%M:%S")
 
             print(f"[{success_time}] Submitted successfully: {name}")
 
             success_count += 1
 
-            page.wait_for_timeout(3000)
+            # CLOSE PAGE
+            page.close()
 
             # RANDOM DELAY BETWEEN PEOPLE
             delay = random.randint(20, 60)
@@ -137,6 +141,8 @@ with sync_playwright() as p:
 
             failed_people.append(name)
 
+            page.close()
+
     browser.close()
 
 # =========================
@@ -147,7 +153,7 @@ if len(failed_people) == 0:
 
     send_email(
         "Machi Lunch Book Panten 😁👍",
-        f"Nee sonna andha {success_count} people kum sethi panniten! "
+        f"Nee sonna andha {success_count} people kum sethi panniten!"
     )
 
 else:
@@ -155,8 +161,8 @@ else:
     failed_text = "\n".join(failed_people)
 
     send_email(
-    "Lunch Booking la prechana !!",
-    f"Indha people-ku booking fail aagiruchu da:\n\n{failed_text}\n\nNee ivangaluku manual ah submit panniru."
-)
+        "Lunch Booking la prechana !!",
+        f"Indha people-ku booking fail aagiruchu da:\n\n{failed_text}\n\nNee ivangaluku manual ah submit panniru."
+    )
 
 print("\nAll submissions completed.\n")
