@@ -8,9 +8,7 @@ from email.mime.text import MIMEText
 
 FORM_URL = "https://forms.office.com/pages/responsepage.aspx?id=reFRbkvFOUu1mA_-muaP7_Bw656ZDoVIuISibW-uAYBUNkRINllQUEw2M09DUjI4STdMQ0FVTUs1Vy4u&route=shorturl"
 
-# =========================
-# EMAIL CONFIGURATION
-# =========================
+
 
 SENDER_EMAIL = "automationlunch@gmail.com"
 
@@ -18,12 +16,10 @@ APP_PASSWORD = "ggapfeaecwumiamg"
 
 RECEIVER_EMAILS = [
     "vijayaravindan1208@gmail.com",
-    "aravindan.v@lk-ea.com"
+    "sonika.s@lk-ea.com"
 ]
 
-# =========================
-# SEND EMAIL FUNCTION
-# =========================
+
 
 def send_email(subject, body):
 
@@ -43,15 +39,10 @@ def send_email(subject, body):
             msg.as_string()
         )
 
-# =========================
-# READ CSV DATA
-# =========================
+
 
 people = pd.read_csv("people.csv")
 
-# =========================
-# RANDOM INITIAL DELAY
-# =========================
 
 initial_delay = random.randint(300, 2700)
 
@@ -59,9 +50,7 @@ print(f"\nInitial random delay: {initial_delay} seconds...\n")
 
 time.sleep(initial_delay)
 
-# =========================
-# PLAYWRIGHT AUTOMATION
-# =========================
+
 
 with sync_playwright() as p:
 
