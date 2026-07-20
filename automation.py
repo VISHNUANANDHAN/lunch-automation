@@ -1,3 +1,5 @@
+
+
 from playwright.sync_api import sync_playwright
 import pandas as pd
 import time
@@ -8,7 +10,9 @@ from email.mime.text import MIMEText
 
 FORM_URL = "https://forms.office.com/pages/responsepage.aspx?id=reFRbkvFOUu1mA_-muaP7_Bw656ZDoVIuISibW-uAYBUNkRINllQUEw2M09DUjI4STdMQ0FVTUs1Vy4u&route=shorturl"
 
-
+# =========================
+# EMAIL CONFIGURATION
+# =========================
 
 SENDER_EMAIL = "automationlunch@gmail.com"
 
@@ -18,7 +22,6 @@ RECEIVER_EMAILS = [
     "vijayaravindan1208@gmail.com",
     "sonika.s@lk-ea.com"
 ]
-
 
 
 def send_email(subject, body):
@@ -40,17 +43,13 @@ def send_email(subject, body):
         )
 
 
-
 people = pd.read_csv("people.csv")
-
 
 initial_delay = random.randint(300, 2700)
 
 print(f"\nInitial random delay: {initial_delay} seconds...\n")
 
 time.sleep(initial_delay)
-
-
 
 with sync_playwright() as p:
 
@@ -60,82 +59,107 @@ with sync_playwright() as p:
 
     failed_people = []
 
-    for index, person in people.iterrows():
+    for _, person in people.iterrows():
 
-        page = browser.new_page()
+        name = person["Name"]
+        category = person["Category"]
 
-        try:
+        success = False
 
-            name = person["Name"]
-            category = person["Category"]
+        # Retry once if first attempt fails
+        for attempt in range(2):
 
-            current_time = datetime.now().strftime("%H:%M:%S")
+            page = browser.new_page()
 
-            print(f"\n[{current_time}] Submitting for: {name}")
+            try:
 
-            # OPEN FORM
-            page.goto(FORM_URL, timeout=60000)
+                current_time = datetime.now().strftime("%H:%M:%S")
 
-            page.wait_for_timeout(3000)
+                print(f"\n[{current_time}] Submitting for: {name} (Attempt {attempt + 1})")
 
-            # CLICK START NOW
-            page.get_by_role("button", name="Start now").click()
+                # Open Form
+                page.goto(
+                    FORM_URL,
+                    wait_until="networkidle",
+                    timeout=60000
+                )
 
-            page.wait_for_timeout(3000)
+                # Click Start Now
+                start_button = page.get_by_role(
+                    "button",
+                    name="Start now"
+                )
 
-            # ENTER NAME
-            page.get_by_placeholder("Enter your answer").fill(name)
+                start_button.wait_for(
+                    state="visible",
+                    timeout=60000
+                )
 
-            page.wait_for_timeout(1000)
+                start_button.click()
 
-            # SELECT CATEGORY
-            page.get_by_text(category, exact=False).click()
+                # Name
+                page.get_by_placeholder(
+                    "Enter your answer"
+                ).fill(name)
 
-            page.wait_for_timeout(2000)
+                # Category
+                page.get_by_text(
+                    category,
+                    exact=False
+                ).click()
 
-            # SELECT DINING OPTION
-            radios = page.locator("input[type='radio']")
+                # Dining Area
+                radios = page.locator("input[type='radio']")
+                radios.last.click()
 
-            radios.last.click()
+                # Submit
+                page.get_by_role(
+                    "button",
+                    name="Submit"
+                ).click()
 
-            page.wait_for_timeout(1000)
+                # Wait for submission to complete
+                page.wait_for_timeout(5000)
 
-            # CLICK SUBMIT
-            page.get_by_role("button", name="Submit").click()
+                print(f"Submitted successfully: {name}")
 
-            # WAIT AFTER SUBMIT
-            page.wait_for_timeout(5000)
+                success_count += 1
 
-            success_time = datetime.now().strftime("%H:%M:%S")
+                success = True
 
-            print(f"[{success_time}] Submitted successfully: {name}")
+                page.close()
 
-            success_count += 1
+                break
 
-            # CLOSE PAGE
-            page.close()
+            except Exception as e:
 
-            # RANDOM DELAY BETWEEN PEOPLE
+                print(f"Attempt {attempt + 1} failed for {name}")
+
+                print(e)
+
+                page.close()
+
+                if attempt == 1:
+                    failed_people.append(name)
+
+                else:
+                    print("Retrying...")
+
+                    time.sleep(5)
+
+        # Delay only after successful submission
+        if success:
+
             delay = random.randint(20, 60)
 
-            print(f"Waiting {delay} seconds before next submission...\n")
+            print(f"Waiting {delay} seconds...\n")
 
             time.sleep(delay)
-
-        except Exception as e:
-
-            error_time = datetime.now().strftime("%H:%M:%S")
-
-            print(f"[{error_time}] Error for {name}: {e}")
-
-            failed_people.append(name)
-
-            page.close()
 
     browser.close()
 
 # =========================
-# FINAL EMAIL NOTIFICATION
+# EMAIL NOTIFICATION
 # =========================
 
 if len(failed_people) == 0:
