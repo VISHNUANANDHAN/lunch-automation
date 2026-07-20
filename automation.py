@@ -165,8 +165,8 @@ with sync_playwright() as p:
 if len(failed_people) == 0:
 
     send_email(
-        "Machi Lunch Book Panten 😁👍",
-        f"Nee sonna andha {success_count} people kum sethi panniten!"
+        "Lunch Booked !",
+        f"Totally {success_count} people."
     )
 
 else:
@@ -174,7 +174,7 @@ else:
     failed_text = "\n".join(failed_people)
 
     send_email(
-        "Lunch Booking la prechana !!",
+        "Lunch Booking la prechana - Contact Aravindan !!",
         f"Indha people-ku booking fail aagiruchu da:\n\n{failed_text}\n\nNee ivangaluku manual ah submit panniru."
     )
 
